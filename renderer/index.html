@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline';" />
+  <title>桌面宠物</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="pet-container">
+    <div id="pet-wrap">
+      <img id="pet-img" draggable="false" alt="宠物" />
+
+      <!-- 右上角菜单按钮：紧贴宠物右上角，鼠标悬停宠物时淡入 -->
+      <button id="menu-btn" class="menu-btn" title="菜单" aria-label="菜单">☰</button>
+
+      <!-- 气泡提醒：显示待办/消息 -->
+      <div id="bubble" class="bubble hidden">
+        <span id="bubble-text"></span>
+        <button id="bubble-close" class="bubble-close" title="关闭">×</button>
+      </div>
+
+      <!-- 趣味气泡：喂食/玩耍后的反馈，巨大椭圆气泡 + 两个递减的圆形尾巴（大圆牵头、小圆连缀） -->
+      <div id="emo-bubble" class="emo-bubble hidden">
+        <div id="emo-bubble-text" class="emo-bubble-text"></div>
+        <div id="tail-bubble-1" class="tail-bubble tail-bubble-1"></div>
+        <div id="tail-bubble-2" class="tail-bubble tail-bubble-2"></div>
+      </div>
+
+      <!-- 状态条：饱食度 / 心情（养成玩法） -->
+      <div id="status-panel" class="status-panel hidden">
+        <div class="status-head">
+          <span>宠物状态</span>
+          <button id="status-close" class="status-close" title="关闭">×</button>
+        </div>
+        <div class="status-row"><span>🍖 饱食度</span><div class="bar"><div id="satiety-bar" class="bar-fill satiety"></div></div></div>
+        <div class="status-row"><span>😊 心情</span><div class="bar"><div id="mood-bar" class="bar-fill mood"></div></div></div>
+        <div class="status-actions">
+          <button id="feed-btn" class="status-btn">喂食</button>
+          <button id="play-btn" class="status-btn">玩耍</button>
+        </div>
+      </div>
+
+      <!-- 待办输入弹层：自建输入框（Electron 渲染进程禁用原生 prompt） -->
+      <div id="todo-panel" class="todo-panel hidden">
+        <div class="todo-title">添加待办</div>
+        <input id="todo-text" class="todo-input" type="text" placeholder="待办内容，如：开会、喝水" />
+        <input id="todo-minutes" class="todo-input" type="number" min="0" placeholder="几分钟后提醒（留空立即提醒）" />
+        <div class="todo-actions">
+          <button id="todo-cancel" class="status-btn">取消</button>
+          <button id="todo-ok" class="status-btn todo-ok">确定</button>
+        </div>
+      </div>
+
+      <!-- 功能菜单：从宠物上方弹出，避免遮挡宠物 -->
+      <div id="context-menu" class="hidden">
+        <div class="menu-item" data-action="change">🖼️ 更换宠物</div>
+        <div class="menu-item" data-action="todo">📝 添加待办</div>
+        <div class="menu-item" data-action="status">📊 查看状态</div>
+        <div class="menu-item" data-action="top">📌 置顶</div>
+        <div class="menu-item menu-danger" data-action="quit">⏻ 退出</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

@@ -1,0 +1,487 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  cursor: default;
+}
+
+body {
+  font-family: "Microsoft YaHei", sans-serif;
+}
+
+/* 宠物容器：占满整个窗口（窗口高度固定，见 main.js）。
+   宠物本体用 position:fixed 钉死在屏幕底部，窗口高度恒定不变 → 菜单展开/收起都不引起重排闪烁。 */
+#pet-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+/* 宠物包裹层：position:fixed 锚定到窗口底部中央，屏幕位置恒定，
+   不随窗口布局变化（窗口高度固定，天然无重排）。 */
+#pet-wrap {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+}
+
+#pet-wrap:active {
+  cursor: grabbing;
+}
+
+#pet-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  pointer-events: none; /* 让鼠标事件穿透图片，统一由容器处理拖拽 */
+  background: rgba(255, 255, 255, 0.0);
+  transition: filter 0.15s, transform 0.2s ease;
+}
+
+/* 悬停反应：轻微放大上浮（幅度受容器上留白约束，避免被窗口裁掉） */
+#pet-wrap:hover #pet-img {
+  transform: translateY(-4px) scale(1.04);
+}
+
+/* 点击弹跳动画 */
+#pet-img.bounce {
+  animation: bounce 0.5s cubic-bezier(0.28, 0.84, 0.42, 1);
+}
+
+@keyframes bounce {
+  0%   { transform: translateY(0) scale(1); }
+  30%  { transform: translateY(-12px) scale(1.06); }
+  55%  { transform: translateY(0) scale(0.97); }
+  75%  { transform: translateY(-5px) scale(1.03); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* 拖入图片时的提示高亮 */
+#pet-img.drop-hover {
+  filter: drop-shadow(0 0 6px rgba(66, 133, 244, 0.85));
+}
+
+/* 拖入非图片文件时的红色提示 */
+#pet-img.drop-reject {
+  filter: drop-shadow(0 0 6px rgba(229, 57, 53, 0.9));
+}
+
+/* 右上角菜单按钮：位于宠物可视区域（#pet-wrap）的右上角，紧贴宠物，悬停宠物时淡入 */
+.menu-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  color: #444;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease, background 0.15s;
+  z-index: 10;
+}
+
+/* 悬停宠物（或菜单展开）时按钮保持可见可点；按钮在包裹层内，鼠标移到按钮上不会丢失悬停 */
+#pet-wrap:hover .menu-btn,
+#pet-wrap.menu-open .menu-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.menu-btn:hover {
+  background: #ffffff;
+}
+
+/* 功能菜单：弹出在宠物“上方”，不遮挡宠物 */
+#context-menu {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  min-width: 140px;
+  max-height: 270px;      /* 上限保护：菜单项再多也不会超出窗口顶边，超出部分滚动 */
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  padding: 6px;
+  z-index: 9999;
+  transition: opacity 0.12s ease;
+}
+
+/* 用 visibility 隐藏而非 display:none：保持布局，便于随时测量菜单高度；开合有淡入淡出 */
+#context-menu.hidden {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.menu-item {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.menu-item:hover {
+  background: #f0f0f0;
+}
+
+.menu-danger {
+  color: #e53935;
+}
+
+.menu-danger:hover {
+  background: #fdecea;
+}
+
+/* ===== P2：气泡提醒 ===== */
+/* 气泡从宠物上方冒出，带小尾巴指向宠物 */
+.bubble {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 210px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  padding: 10px 28px 10px 12px;
+  font-size: 13px;
+  color: #333;
+  line-height: 1.5;
+  z-index: 10000;
+  animation: bubble-pop 0.25s ease;
+}
+
+/* 气泡小尾巴 */
+.bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: #ffffff;
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.bubble.hidden {
+  display: none;
+}
+
+@keyframes bubble-pop {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.9); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+.bubble-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: #f0f0f0;
+  color: #888;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* ===== 趣味气泡：喂食/玩耍后的反馈动画 ===== */
+/* 位置：按「图像比例估算」锚定到宠物头部——宠物头大致在图像上半部、水平居中偏上。
+   默认宠物（方形全身图）头部约在框顶往下 20%（≈40px）处。
+   三层阶梯递进（由近及远、由小到大）：
+   1) 微小指引气泡：贴头部左侧、靠近脸
+   2) 过渡气泡：第一个的左上方，明显大一圈
+   3) 巨型主椭圆：过渡泡的左上方，紧贴头顶，向左大幅延展 */
+.emo-bubble {
+  position: absolute;
+  bottom: calc(100% - 48px);  /* 锚定到宠物头部（框顶往下约 48px，头部位置） */
+  left: 50%;
+  width: 0;
+  height: 0;
+  z-index: 10001;
+  pointer-events: none;        /* 纯展示，不拦截鼠标 */
+}
+
+.emo-bubble.hidden {
+  display: none;
+}
+
+/* 巨型横向椭圆主气泡：紧贴头顶，向左大幅延展 */
+.emo-bubble-text {
+  position: absolute;
+  bottom: 20px;               /* 紧贴头部上方，不再远离 */
+  left: 50%;
+  transform: translateX(-52%);
+  max-width: 230px;
+  white-space: nowrap;
+  padding: 28px 40px;          /* 巨大、饱满 */
+  background: #fdfdfd;
+  border: 3px solid #4a6cbf;  /* 深蓝色粗描边（呼应头发色） */
+  border-radius: 50%;          /* 巨大横向椭圆 */
+  box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.06), 0 10px 28px rgba(0, 0, 0, 0.18);
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  opacity: 0;
+}
+
+/* 两个圆形气泡：深蓝粗描边、浅色背景、微立体 */
+.tail-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: #fdfdfd;
+  border: 3px solid #4a6cbf;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.06), 0 4px 10px rgba(0, 0, 0, 0.12);
+  opacity: 0;
+}
+
+/* 过渡气泡（第二层）：微小泡的左上方，明显大一圈 */
+.tail-bubble-1 {
+  bottom: -8px;
+  left: 50%;
+  margin-left: -40px;         /* 左上方 */
+  width: 22px;
+  height: 22px;
+}
+
+/* 微小指引气泡（第一层/起点）：贴头部左侧、靠近脸 */
+.tail-bubble-2 {
+  bottom: -26px;
+  left: 50%;
+  margin-left: -26px;         /* 头部左侧，靠近脸 */
+  width: 9px;
+  height: 9px;
+}
+
+/* ===== 动画 ===== */
+/* 微小气泡先冒，过渡气泡随后，主椭圆最后膨胀弹出 */
+.emo-bubble.playing .tail-bubble-2 {
+  animation: tail-grow-2 0.5s ease-out forwards;
+}
+.emo-bubble.playing .tail-bubble-1 {
+  animation: tail-grow-1 0.55s ease-out 0.12s forwards;
+}
+.emo-bubble.playing .emo-bubble-text {
+  animation: main-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s forwards;
+}
+
+/* 微小气泡（起点）先冒 */
+@keyframes tail-grow-2 {
+  0%   { opacity: 0; transform: scale(0.2); }
+  40%  { opacity: 1; }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 过渡气泡随后冒出 */
+@keyframes tail-grow-1 {
+  0%   { opacity: 0; transform: scale(0.2); }
+  40%  { opacity: 1; }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 巨型主椭圆：向左上方膨胀弹入 */
+@keyframes main-pop {
+  0%   { opacity: 0; transform: translateX(-52%) translateY(12px) scale(0.3); }
+  60%  { opacity: 1; transform: translateX(-52%) translateY(0) scale(1.06); }
+  100% { opacity: 1; transform: translateX(-52%) translateY(0) scale(1); }
+}
+
+.bubble-close:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+/* ===== P2：状态面板（饱食度/心情） ===== */
+.status-panel {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  width: 170px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  padding: 10px 12px;
+  z-index: 9998;
+}
+
+.status-panel.hidden {
+  display: none;
+}
+
+.status-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.status-close {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: #f0f0f0;
+  color: #888;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.status-close:hover {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  color: #555;
+}
+
+.status-row span {
+  width: 56px;
+  flex-shrink: 0;
+}
+
+.bar {
+  flex: 1;
+  height: 10px;
+  background: #f0f0f0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 5px;
+  transition: width 0.4s ease;
+}
+
+.bar-fill.satiety {
+  background: linear-gradient(90deg, #ff9a56, #ff7043);
+}
+
+.bar-fill.mood {
+  background: linear-gradient(90deg, #66bb6a, #43a047);
+}
+
+.status-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.status-btn {
+  flex: 1;
+  padding: 6px 0;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fafafa;
+  font-size: 12px;
+  color: #444;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.status-btn:hover {
+  background: #f0f0f0;
+}
+
+/* ===== P2：待办输入弹层 ===== */
+.todo-panel {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  width: 210px;
+  background: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  padding: 10px 12px;
+  z-index: 9997;
+}
+
+.todo-panel.hidden {
+  display: none;
+}
+
+.todo-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.todo-input {
+  width: 100%;
+  padding: 7px 9px;
+  margin-bottom: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #333;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.todo-input:focus {
+  border-color: #5a9cff;
+}
+
+.todo-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.todo-ok {
+  background: #5a9cff;
+  color: #fff;
+  border-color: #5a9cff;
+}
+
+.todo-ok:hover {
+  background: #4889ee;
+}
