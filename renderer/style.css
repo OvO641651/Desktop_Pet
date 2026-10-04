@@ -246,7 +246,7 @@ body {
   position: absolute;
   bottom: 20px;               /* 紧贴头部上方，不再远离 */
   left: 50%;
-  transform: translateX(-52%);
+  transform: translateX(-58%);
   max-width: 230px;
   white-space: nowrap;
   padding: 28px 40px;          /* 巨大、饱满 */
@@ -270,11 +270,11 @@ body {
   opacity: 0;
 }
 
-/* 过渡气泡（第二层）：微小泡的左上方，明显大一圈 */
+/* 过渡气泡（第二层）：微小泡的左上方，明显大一圈，向左倾斜角度更大 */
 .tail-bubble-1 {
   bottom: -8px;
   left: 50%;
-  margin-left: -40px;         /* 左上方 */
+  margin-left: -58px;         /* 更靠左，增大与微小泡的横向差，倾斜更明显 */
   width: 22px;
   height: 22px;
 }
@@ -283,7 +283,7 @@ body {
 .tail-bubble-2 {
   bottom: -26px;
   left: 50%;
-  margin-left: -26px;         /* 头部左侧，靠近脸 */
+  margin-left: -36px;         /* 整体左移，头部左侧靠近脸 */
   width: 9px;
   height: 9px;
 }
@@ -316,9 +316,9 @@ body {
 
 /* 巨型主椭圆：向左上方膨胀弹入 */
 @keyframes main-pop {
-  0%   { opacity: 0; transform: translateX(-52%) translateY(12px) scale(0.3); }
-  60%  { opacity: 1; transform: translateX(-52%) translateY(0) scale(1.06); }
-  100% { opacity: 1; transform: translateX(-52%) translateY(0) scale(1); }
+  0%   { opacity: 0; transform: translateX(-58%) translateY(12px) scale(0.3); }
+  60%  { opacity: 1; transform: translateX(-58%) translateY(0) scale(1.06); }
+  100% { opacity: 1; transform: translateX(-58%) translateY(0) scale(1); }
 }
 
 .bubble-close:hover {
