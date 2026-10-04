@@ -274,7 +274,7 @@ body {
 .tail-bubble-1 {
   bottom: -8px;
   left: 50%;
-  margin-left: -64px;         /* 更靠左 */
+  margin-left: -64px;         /* 更靠左 -64*/
   width: 22px;
   height: 22px;
 }
@@ -283,7 +283,7 @@ body {
 .tail-bubble-2 {
   bottom: -32px;              /* 下移：-26→-32，更靠近脸 */
   left: 50%;
-  margin-left: -42px;         /* 整体左移 */
+  margin-left: -42px;         /* 整体左移 -42*/
   width: 9px;
   height: 9px;
 }
