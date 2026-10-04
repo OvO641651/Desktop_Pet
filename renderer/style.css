@@ -188,18 +188,21 @@ body {
   position: absolute;
   bottom: 30px;               /* 上移：20→30，拉开与微小泡的距离 */
   left: 50%;
-  transform: translateX(-55%);  /* 放大后回退，避免左溢出 */
-  max-width: 230px;
-  white-space: nowrap;
-  padding: 34px 48px;          /* 28/40→34/48，主椭圆再放大 */
+  transform: translateX(-50%); /* 水平居中，左右留足空间容纳长文字 */
+  min-width: 150px;            /* 最小宽度，保证每行能容纳足够文字 */
+  max-width: 190px;            /* 最大宽度，超出后换行 */
+  white-space: normal;         /* 允许换行，长文字自动换行、气泡变高 */
+  padding: 16px 20px;
   background: #fdfdfd;
   border: 3px solid #4a6cbf;  /* 深蓝色粗描边（呼应头发色） */
-  border-radius: 50%;          /* 横向椭圆 */
+  border-radius: 20px;         /* 圆角矩形，适合多行文字 */
   box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.06), 0 10px 28px rgba(0, 0, 0, 0.18);
-  font-size: 18px;
+  font-size: 14px;
   font-weight: 600;
   color: #333;
   opacity: 0;
+  text-align: center;
+  line-height: 1.5;
 }
 
 /* 两个椭圆形气泡：深蓝粗描边、浅色背景、微立体 */
@@ -258,9 +261,9 @@ body {
 
 /* 巨型主椭圆：向左上方膨胀弹入 */
 @keyframes main-pop {
-  0%   { opacity: 0; transform: translateX(-55%) translateY(12px) scale(0.3); }
-  60%  { opacity: 1; transform: translateX(-55%) translateY(0) scale(1.06); }
-  100% { opacity: 1; transform: translateX(-55%) translateY(0) scale(1); }
+  0%   { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.3); }
+  60%  { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.06); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
 }
 
 /* ===== P2：状态面板（饱食度/心情） ===== */
