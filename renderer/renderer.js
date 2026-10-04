@@ -256,6 +256,7 @@ window.addEventListener('mouseup', (e) => {
   // 位移小于阈值视为「点击」，触发弹跳互动（与拖拽区分开）
   if (moved < 6) {
     triggerBounce();
+    showGreetingBubble(); // 左键点击：弹出日常对话气泡
   }
 });
 
@@ -356,6 +357,41 @@ function hideEmoBubble() {
   emoBubble.classList.add('hidden');
   emoBubble.classList.remove('playing');
   if (emoBubbleTimer) { clearTimeout(emoBubbleTimer); emoBubbleTimer = null; }
+}
+
+// ==================== 左键点击对话气泡 ====================
+// 预设日常问候/闲聊短句，点击桌宠时随机选取一条显示。
+const GREETINGS = [
+  '中午好',
+  '吃饭了吗',
+  '我去吃饭了',
+  '今天也要加油哦',
+  '摸鱼中，勿扰～',
+  '你好呀，有什么事吗？',
+  '要不要一起玩呀？',
+  '今天天气不错呢',
+  '好无聊，陪我说说话吧',
+  '肚子有点饿了…',
+  '早点休息哦',
+  '辛苦了，歇一歇吧'
+];
+
+let lastGreeting = null; // 记住上次显示的句子，避免连续重复
+
+// 随机选取一条，排除上一次显示的（避免连续两次相同）
+function pickGreeting() {
+  if (GREETINGS.length === 0) return '你好呀';
+  let idx;
+  do {
+    idx = Math.floor(Math.random() * GREETINGS.length);
+  } while (GREETINGS.length > 1 && GREETINGS[idx] === lastGreeting);
+  lastGreeting = GREETINGS[idx];
+  return GREETINGS[idx];
+}
+
+// 点击桌宠：显示一条随机问候（复用 #bubble 待办气泡组件，自动隐藏 + 可点 × 关闭）
+function showGreetingBubble() {
+  showBubble(pickGreeting(), 3500);
 }
 
 // 接收主进程推送的到期待办提醒
