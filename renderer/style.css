@@ -192,10 +192,10 @@ body {
   min-width: 150px;            /* 最小宽度，保证每行能容纳足够文字 */
   max-width: 190px;            /* 最大宽度，超出后换行 */
   white-space: normal;         /* 允许换行，长文字自动换行、气泡变高 */
-  padding: 16px 20px;
+  padding: 24px 30px;          /* 恢复较宽内边距，撑出椭圆 */
   background: #fdfdfd;
   border: 3px solid #4a6cbf;  /* 深蓝色粗描边（呼应头发色） */
-  border-radius: 20px;         /* 圆角矩形，适合多行文字 */
+  border-radius: 50%;          /* 宽高不等 → 椭圆形（单行横向椭圆，多行自动拉长） */
   box-shadow: inset 0 -3px 6px rgba(0, 0, 0, 0.06), 0 10px 28px rgba(0, 0, 0, 0.18);
   font-size: 14px;
   font-weight: 600;
