@@ -3,9 +3,6 @@ const petWrap = document.getElementById('pet-wrap');
 const petImg = document.getElementById('pet-img');
 const contextMenu = document.getElementById('context-menu');
 const menuBtn = document.getElementById('menu-btn');
-const bubble = document.getElementById('bubble');
-const bubbleText = document.getElementById('bubble-text');
-const bubbleClose = document.getElementById('bubble-close');
 const emoBubble = document.getElementById('emo-bubble');
 const emoBubbleText = document.getElementById('emo-bubble-text');
 const statusPanel = document.getElementById('status-panel');
@@ -315,31 +312,9 @@ function flashReject() {
   setTimeout(() => petImg.classList.remove('drop-reject'), 600);
 }
 
-// ==================== P2：气泡提醒 ====================
-let bubbleTimer = null;
-
-// 显示气泡；duration 毫秒后自动隐藏（0 表示常驻，需手动关闭）
-function showBubble(text, duration = 5000) {
-  bubbleText.textContent = text;
-  bubble.classList.remove('hidden');
-  if (bubbleTimer) clearTimeout(bubbleTimer);
-  if (duration > 0) {
-    bubbleTimer = setTimeout(() => hideBubble(), duration);
-  }
-}
-
-function hideBubble() {
-  bubble.classList.add('hidden');
-  if (bubbleTimer) { clearTimeout(bubbleTimer); bubbleTimer = null; }
-}
-
-bubbleClose.addEventListener('click', (e) => {
-  e.stopPropagation();
-  hideBubble();
-});
-
-// ==================== 趣味气泡（喂食/玩耍反馈） ====================
-// 两个小泡泡从宠物头顶冒出 → 一个大泡泡从宠物左侧延伸到头上方显示文字
+// ==================== 三段椭圆气泡（唯一气泡组件） ====================
+// 喂食/玩耍/单击对话/待办提醒等所有气泡统一使用这个组件。
+// 结构：微小泡 + 过渡泡 + 巨型主椭圆（自右下→左上 45° 倾斜，锚定头部左上方）。
 let emoBubbleTimer = null;
 
 function showEmoBubble(text, duration = 3200) {
@@ -360,43 +335,38 @@ function hideEmoBubble() {
 }
 
 // ==================== 左键点击对话气泡 ====================
-// 预设日常问候/闲聊短句，点击桌宠时随机选取一条显示。
-const GREETINGS = [
-  '中午好',
-  '吃饭了吗',
-  '我去吃饭了',
-  '今天也要加油哦',
-  '摸鱼中，勿扰～',
-  '你好呀，有什么事吗？',
-  '要不要一起玩呀？',
-  '今天天气不错呢',
-  '好无聊，陪我说说话吧',
-  '肚子有点饿了…',
-  '早点休息哦',
-  '辛苦了，歇一歇吧'
-];
-
+// 对话内容库从 greetings.js 加载（window.GREETINGS）。
+// 每条可能是字符串，或 { text, image }（image 为可选的表情图/GIF 路径，后续扩展）。
+const GREETINGS = window.GREETINGS || ['你好呀'];
 let lastGreeting = null; // 记住上次显示的句子，避免连续重复
 
-// 随机选取一条，排除上一次显示的（避免连续两次相同）
+// 随机选取一条，排除上一次显示的（避免连续两次相同）；返回显示文本
 function pickGreeting() {
   if (GREETINGS.length === 0) return '你好呀';
   let idx;
   do {
     idx = Math.floor(Math.random() * GREETINGS.length);
-  } while (GREETINGS.length > 1 && GREETINGS[idx] === lastGreeting);
-  lastGreeting = GREETINGS[idx];
+  } while (GREETINGS.length > 1 && getGreetingText(GREETINGS[idx]) === lastGreeting);
+  lastGreeting = getGreetingText(GREETINGS[idx]);
   return GREETINGS[idx];
 }
 
-// 点击桌宠：显示一条随机问候（复用 #bubble 待办气泡组件，自动隐藏 + 可点 × 关闭）
-function showGreetingBubble() {
-  showBubble(pickGreeting(), 3500);
+// 兼容字符串与 { text, image } 两种结构，取文字部分
+function getGreetingText(item) {
+  return typeof item === 'string' ? item : (item && item.text) || '';
 }
 
-// 接收主进程推送的到期待办提醒
+// 点击桌宠：显示一条随机问候（统一用三段椭圆气泡）
+function showGreetingBubble() {
+  const g = pickGreeting();
+  const text = getGreetingText(g);
+  // 若带 image，后续可在这里展示图片/GIF；当前版本仅显示文字
+  showEmoBubble(text, 3500);
+}
+
+// 接收主进程推送的到期待办提醒（统一用三段椭圆气泡）
 window.petAPI.onBubble((data) => {
-  showBubble(`⏰ 待办提醒：${data.text}`, 8000);
+  showEmoBubble(`⏰ 待办提醒：${data.text}`, 8000);
 });
 
 // ==================== P2：添加待办 ====================
@@ -416,7 +386,7 @@ function hideTodoPanel() {
 todoOk.addEventListener('click', async () => {
   const text = todoText.value.trim();
   if (!text) {
-    showBubble('⚠️ 待办内容不能为空', 2000);
+    showEmoBubble('⚠️ 待办内容不能为空', 2000);
     return;
   }
   const minVal = todoMinutes.value.trim();
@@ -433,7 +403,7 @@ todoOk.addEventListener('click', async () => {
   const res = await window.petAPI.todoAdd(text, dueAt);
   hideTodoPanel();
   if (res && res.ok) {
-    showBubble(`📝 已添加待办，${tip}`, 3000);
+    showEmoBubble(`📝 已添加待办，${tip}`, 3000);
   }
 });
 
@@ -490,11 +460,11 @@ function applyDecay() {
     // 心情过低时气泡提醒
     if (cachedState.satiety < 20 && !window._hungryWarned) {
       window._hungryWarned = true;
-      showBubble('😿 好饿呀，给我喂点吃的吧～', 5000);
+      showEmoBubble('😿 好饿呀，给我喂点吃的吧～', 5000);
     }
     if (cachedState.mood < 20 && !window._sadWarned) {
       window._sadWarned = true;
-      showBubble('😔 好无聊，陪我玩一会儿吧～', 5000);
+      showEmoBubble('😔 好无聊，陪我玩一会儿吧～', 5000);
     }
   }
 }

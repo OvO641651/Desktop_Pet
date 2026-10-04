@@ -14,13 +14,7 @@
       <!-- 右上角菜单按钮：紧贴宠物右上角，鼠标悬停宠物时淡入 -->
       <button id="menu-btn" class="menu-btn" title="菜单" aria-label="菜单">☰</button>
 
-      <!-- 气泡提醒：显示待办/消息 -->
-      <div id="bubble" class="bubble hidden">
-        <span id="bubble-text"></span>
-        <button id="bubble-close" class="bubble-close" title="关闭">×</button>
-      </div>
-
-      <!-- 趣味气泡：喂食/玩耍后的反馈，巨大椭圆气泡 + 两个递减的圆形尾巴（大圆牵头、小圆连缀） -->
+      <!-- 三段椭圆气泡：唯一的对话/提醒气泡组件（喂食/玩耍/单击对话/待办提醒通用） -->
       <div id="emo-bubble" class="emo-bubble hidden">
         <div id="emo-bubble-text" class="emo-bubble-text"></div>
         <div id="tail-bubble-1" class="tail-bubble tail-bubble-1"></div>
@@ -63,6 +57,7 @@
     </div>
   </div>
 
+  <script src="greetings.js"></script>
   <script src="renderer.js"></script>
 </body>
 </html>

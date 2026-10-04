@@ -162,64 +162,6 @@ body {
   background: #fdecea;
 }
 
-/* ===== P2：气泡提醒 ===== */
-/* 气泡从宠物上方冒出，带小尾巴指向宠物 */
-.bubble {
-  position: absolute;
-  bottom: calc(100% + 12px);
-  left: 50%;
-  transform: translateX(-50%);
-  max-width: 210px;
-  background: #ffffff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
-  padding: 10px 28px 10px 12px;
-  font-size: 13px;
-  color: #333;
-  line-height: 1.5;
-  z-index: 10000;
-  animation: bubble-pop 0.25s ease;
-}
-
-/* 气泡小尾巴 */
-.bubble::after {
-  content: '';
-  position: absolute;
-  bottom: -6px;
-  left: 50%;
-  transform: translateX(-50%) rotate(45deg);
-  width: 12px;
-  height: 12px;
-  background: #ffffff;
-  border-right: 1px solid #e0e0e0;
-  border-bottom: 1px solid #e0e0e0;
-}
-
-.bubble.hidden {
-  display: none;
-}
-
-@keyframes bubble-pop {
-  0%   { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.9); }
-  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-}
-
-.bubble-close {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  width: 18px;
-  height: 18px;
-  border: none;
-  border-radius: 50%;
-  background: #f0f0f0;
-  color: #888;
-  font-size: 14px;
-  line-height: 1;
-  cursor: pointer;
-}
-
 /* ===== 趣味气泡：喂食/玩耍后的反馈动画 ===== */
 /* 位置：按「图像比例估算」锚定到宠物头部——宠物头大致在图像上半部、水平居中偏上。
    默认宠物（方形全身图）头部约在框顶往下 20%（≈40px）处。
@@ -319,11 +261,6 @@ body {
   0%   { opacity: 0; transform: translateX(-55%) translateY(12px) scale(0.3); }
   60%  { opacity: 1; transform: translateX(-55%) translateY(0) scale(1.06); }
   100% { opacity: 1; transform: translateX(-55%) translateY(0) scale(1); }
-}
-
-.bubble-close:hover {
-  background: #e0e0e0;
-  color: #333;
 }
 
 /* ===== P2：状态面板（饱食度/心情） ===== */
